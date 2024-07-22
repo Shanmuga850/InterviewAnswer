@@ -1,0 +1,83 @@
+function getMonthlyStats(data) {
+
+    // Object to hold logged-in users for each month
+    const loggedInUsers = {}; 
+    
+    // Object to hold active users for each month
+    const activeUsers = {}; 
+
+    data.forEach(record => {
+
+        // Convert timestamps to Date objects
+        let loggedIn = new Date(record.logged_in); 
+        const loggedOut = new Date(record.logged_out); 
+        const lastOpened = new Date(record.lastOpenedAt); 
+
+        // Iterate through each month from logged_in to logged_out
+        while (loggedIn <= loggedOut) {
+
+            // Extract month
+            const month = loggedIn.getMonth() + 1; 
+
+            // Extract year
+            const year = loggedIn.getFullYear(); 
+
+            // Create key for the month-year
+            const key = `${year}-${month}`; 
+
+            // Initialize set if key doesn't exist
+            if (!loggedInUsers[key]) loggedInUsers[key] = new Set(); 
+
+            // Add userId to the set
+            loggedInUsers[key].add(record.userId); 
+
+            // Move to the next month
+            loggedIn.setMonth(loggedIn.getMonth() + 1); 
+        }
+
+        // Create key for lastOpenedAt month-year
+        const activeKey = `${lastOpened.getFullYear()}-${lastOpened.getMonth() + 1}`; 
+
+        // Initialize set if key doesn't exist
+        if (!activeUsers[activeKey]) activeUsers[activeKey] = new Set(); 
+
+        // Add userId to the set
+        activeUsers[activeKey].add(record.userId); 
+    });
+
+    // Array to hold monthly statistics
+    const monthlyStats = []; 
+
+    for (let i = 0; i < 12; i++) {
+
+        // Month index (1-12)
+        const month = i + 1; 
+
+        // Current year
+        const year = new Date().getFullYear();
+
+        // Create key for current month-year
+        const key = `${year}-${month}`; 
+
+        // Push monthly statistics to the array
+        monthlyStats.push({
+            month, // Current month
+            year, // Current year
+            loggedInUsers: loggedInUsers[key] ? loggedInUsers[key].size : 0, // Number of unique logged-in users
+            activeUsers: activeUsers[key] ? activeUsers[key].size : 0 // Number of unique active users
+        });
+    }
+
+    // Return the monthly statistics
+    return monthlyStats; 
+}
+
+// Example usage
+const data = [
+
+    { userId: 'user1', deviceId: 'device1', logged_in: '2023-01-01T00:00:00Z', logged_out: '2023-06-01T00:00:00Z', lastOpenedAt: '2023-03-01T00:00:00Z' },
+    { userId: 'user2', deviceId: 'device2', logged_in: '2023-02-01T00:00:00Z', logged_out: '2023-07-01T00:00:00Z', lastOpenedAt: '2023-05-01T00:00:00Z' }
+];
+
+// Log the results
+console.log(getMonthlyStats(data)); 
